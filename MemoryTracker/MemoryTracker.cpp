@@ -29,8 +29,8 @@
 
 #include <sanitizer.h>
 
+#include <iostream>
 #include <map>
-#include <stdio.h>
 #include <vector>
 
 // TODO: handle multiple contexts
@@ -40,8 +40,6 @@
 // TODO: write in a file instead of stdout
 
 // TODO: write global/local/shared memory
-
-#define MEM_ACCESS_DEFAULT_SIZE 1024
 
 struct LaunchData
 {
@@ -67,17 +65,19 @@ void LaunchBegin(
     std::string functionName,
     CUstream stream)
 {
+    constexpr size_t MemAccessDefaultSize = 1024;
+
     // alloc MemoryAccess array
-    MemoryAccess* accesses;
-    sanitizerAlloc((void**)&accesses, sizeof(MemoryAccess) * MEM_ACCESS_DEFAULT_SIZE);
-    sanitizerMemset(accesses, 0, sizeof(MemoryAccess) * MEM_ACCESS_DEFAULT_SIZE, stream);
+    MemoryAccess* accesses = nullptr;
+    sanitizerAlloc((void**)&accesses, sizeof(MemoryAccess) * MemAccessDefaultSize);
+    sanitizerMemset(accesses, 0, sizeof(MemoryAccess) * MemAccessDefaultSize, stream);
 
     MemoryAccessTracker hTracker;
     hTracker.currentEntry = 0;
-    hTracker.maxEntry = MEM_ACCESS_DEFAULT_SIZE;
+    hTracker.maxEntry = MemAccessDefaultSize;
     hTracker.accesses = accesses;
 
-    MemoryAccessTracker* dTracker;
+    MemoryAccessTracker* dTracker = nullptr;
     sanitizerAlloc((void**)&dTracker, sizeof(*dTracker));
     sanitizerMemcpyHostToDeviceAsync(dTracker, &hTracker, sizeof(*dTracker), stream);
 
@@ -98,29 +98,26 @@ void StreamSynchronized(
 
     for (auto& tracker : deviceTrackers)
     {
-        printf("Kernel Launch: %s\n", tracker.functionName.c_str());
+        std::cout << "Kernel Launch: " << tracker.functionName << std::endl;
 
         sanitizerMemcpyDeviceToHost(&hTracker, tracker.pTracker, sizeof(*tracker.pTracker), stream);
 
         uint32_t numEntries = std::min(hTracker.currentEntry, hTracker.maxEntry);
 
-        printf("  Memory accesses: %u\n", numEntries);
+        std::cout << "  Memory accesses: " << numEntries << std::endl;
 
-        MemoryAccess* accesses = (MemoryAccess*)calloc(numEntries, sizeof(MemoryAccess));
-        sanitizerMemcpyDeviceToHost(accesses, hTracker.accesses, sizeof(MemoryAccess) * numEntries, stream);
+        std::vector<MemoryAccess> accesses(numEntries);
+        sanitizerMemcpyDeviceToHost(accesses.data(), hTracker.accesses, sizeof(MemoryAccess) * numEntries, stream);
 
         for (uint32_t i = 0; i < numEntries; ++i)
         {
-            printf(
-                "  [%u] Address accessed is %p (size is %u)\n",
-                i,
-                (void*)(uintptr_t)accesses[i].address,
-                accesses[i].accessSize);
+            std::cout << "  [" << i << "] Address accessed is 0x"
+                << std::hex << accesses[i].address << std::dec << " (size is "
+                << accesses[i].accessSize << " bytes)" << std::endl;
         }
 
         sanitizerFree(hTracker.accesses);
         sanitizerFree(tracker.pTracker);
-        free(accesses);
     }
 
     deviceTrackers.clear();
