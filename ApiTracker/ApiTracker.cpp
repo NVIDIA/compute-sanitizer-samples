@@ -49,8 +49,8 @@ static void ApiTrackerCallback(
 
     auto returnValue = *(cudaError_t*)pCallbackData->functionReturnValue;
 
-    std::cout << "API call to " << pCallbackData->functionName <<" (return code "
-        << returnValue << ")" << std::endl;
+    std::cout << "API call to " << pCallbackData->functionName << " (return code "
+              << returnValue << ")" << std::endl;
 }
 
 int InitializeInjection()

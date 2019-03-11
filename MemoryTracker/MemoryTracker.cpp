@@ -112,8 +112,8 @@ void StreamSynchronized(
         for (uint32_t i = 0; i < numEntries; ++i)
         {
             std::cout << "  [" << i << "] Address accessed is 0x"
-                << std::hex << accesses[i].address << std::dec << " (size is "
-                << accesses[i].accessSize << " bytes)" << std::endl;
+                      << std::hex << accesses[i].address << std::dec << " (size is "
+                      << accesses[i].accessSize << " bytes)" << std::endl;
         }
 
         sanitizerFree(hTracker.accesses);
