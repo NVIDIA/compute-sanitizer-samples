@@ -49,6 +49,7 @@ SanitizerPatchResult MemoryAccessCallback(
     access.address = (uint64_t)(uintptr_t)ptr;
     access.accessSize = accessSize;
     access.flags = flags;
+    access.threadId = threadIdx;
 
     return SANITIZER_PATCH_SUCCESS;
 }

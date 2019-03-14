@@ -39,8 +39,6 @@
 
 // TODO: write in a file instead of stdout
 
-// TODO: write global/local/shared memory
-
 struct LaunchData
 {
     std::string functionName;
@@ -88,6 +86,38 @@ void LaunchBegin(
     deviceTrackers.push_back(launchData);
 }
 
+static std::string GetMemoryRWString(uint32_t flags)
+{
+    if (flags & SANITIZER_MEMORY_DEVICE_FLAG_READ)
+    {
+        return "Read";
+    }
+    else if (flags & SANITIZER_MEMORY_DEVICE_FLAG_WRITE)
+    {
+        return "Write";
+    }
+    else
+    {
+        return "Unknown";
+    }
+}
+
+static std::string GetMemoryTypeString(uint32_t flags)
+{
+    if (flags & SANITIZER_MEMORY_DEVICE_FLAG_LOCAL)
+    {
+        return "local";
+    }
+    else if (flags & SANITIZER_MEMORY_DEVICE_FLAG_SHARED)
+    {
+        return  "shared";
+    }
+    else
+    {
+        return "global";
+    }
+}
+
 void StreamSynchronized(
     CallbackTracker* pCallbackTracker,
     CUstream stream)
@@ -111,9 +141,15 @@ void StreamSynchronized(
 
         for (uint32_t i = 0; i < numEntries; ++i)
         {
-            std::cout << "  [" << i << "] Address accessed is 0x"
-                      << std::hex << accesses[i].address << std::dec << " (size is "
-                      << accesses[i].accessSize << " bytes)" << std::endl;
+            MemoryAccess& access = accesses[i];
+
+            std::cout << "  [" << i << "] " << GetMemoryRWString(access.flags)
+                      << " access of " << GetMemoryTypeString(access.flags)
+                      << " memory by thread (" << access.threadId.z
+                      << "," << access.threadId.y
+                      << "," << access.threadId.x
+                      << ") at address 0x" << std::hex << access.address << std::dec
+                      << " (size is " << access.accessSize << " bytes)" << std::endl;
         }
 
         sanitizerFree(hTracker.accesses);

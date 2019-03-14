@@ -29,12 +29,15 @@
 
 #include <cstdint>
 
+#include <vector_types.h>
+
 // Information regarding a memory access
 struct MemoryAccess
 {
     uint64_t address;
     uint32_t accessSize;
     uint32_t flags;
+    dim3     threadId;
 };
 
 // Main tracking structure that patches get as userdata
