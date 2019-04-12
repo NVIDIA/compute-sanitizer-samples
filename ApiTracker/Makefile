@@ -40,7 +40,8 @@ INCLUDE_FLAGS  := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include
 CUPTI_PATH     := $(CUDA_PATH)/extras/CUPTI
 INCLUDE_FLAGS  += -I$(CUPTI_PATH)/include
 
-LINK_FLAGS     := -L$(SANITIZER_PATH) -lsanitizer-public -fPIC -shared
+LINK_FLAGS     := -L$(SANITIZER_PATH) -fPIC -shared
+LINK_LIBS      := -lsanitizer-public
 
 # Target rules
 all: build
@@ -48,7 +49,7 @@ all: build
 build: libApiTracker.so
 
 libApiTracker.so: ApiTracker.cpp
-	$(HOST_COMPILER) $(INCLUDE_FLAGS) $(LINK_FLAGS) -o $@ $<
+	$(HOST_COMPILER) $(INCLUDE_FLAGS) $(LINK_FLAGS) -o $@ $< $(LINK_LIBS)
 
 clean:
 	rm -f libApiTracker.so

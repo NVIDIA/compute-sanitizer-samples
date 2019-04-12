@@ -40,7 +40,8 @@ INCLUDE_FLAGS  := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include
 CUPTI_PATH     := $(CUDA_PATH)/extras/CUPTI
 INCLUDE_FLAGS  += -I$(CUPTI_PATH)/include
 
-LINK_FLAGS     := -L$(SANITIZER_PATH) -lsanitizer-public -fPIC -shared
+LINK_FLAGS     := -L$(SANITIZER_PATH) -fPIC -shared
+LINK_LIBS      := -lsanitizer-public
 
 NVCC_FLAGS     := --fatbin --keep-device-functions -Xptxas --compile-as-tools-patch
 NVCC_FLAGS     += $(INCLUDE_FLAGS)
@@ -68,7 +69,7 @@ all: build
 build: libMemoryTracker.so MemoryTrackerPatches.fatbin
 
 libMemoryTracker.so: MemoryTracker.cpp
-	$(HOST_COMPILER) $(INCLUDE_FLAGS) $(LINK_FLAGS) -o $@ $<
+	$(HOST_COMPILER) $(INCLUDE_FLAGS) $(LINK_FLAGS) -o $@ $< $(LINK_LIBS)
 
 MemoryTrackerPatches.fatbin: MemoryTrackerPatches.cu
 	$(NVCC) $(NVCC_FLAGS) $(GENCODE_FLAGS) -o $@ -c $<
