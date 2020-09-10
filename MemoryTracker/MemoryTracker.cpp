@@ -47,7 +47,7 @@ struct LaunchData
 
 struct CallbackTracker
 {
-    std::map<CUstream, std::vector<LaunchData>> memoryTrackers;
+    std::map<Sanitizer_StreamHandle, std::vector<LaunchData>> memoryTrackers;
 };
 
 void ModuleLoaded(Sanitizer_ResourceModuleData* pModuleData)
@@ -60,14 +60,16 @@ void ModuleLoaded(Sanitizer_ResourceModuleData* pModuleData)
 
 void LaunchBegin(
     CallbackTracker* pCallbackTracker,
+    CUcontext context,
+    CUfunction function,
     std::string functionName,
-    CUstream stream)
+    Sanitizer_StreamHandle stream)
 {
     constexpr size_t MemAccessDefaultSize = 1024;
 
     // alloc MemoryAccess array
     MemoryAccess* accesses = nullptr;
-    sanitizerAlloc((void**)&accesses, sizeof(MemoryAccess) * MemAccessDefaultSize);
+    sanitizerAlloc(context, (void**)&accesses, sizeof(MemoryAccess) * MemAccessDefaultSize);
     sanitizerMemset(accesses, 0, sizeof(MemoryAccess) * MemAccessDefaultSize, stream);
 
     MemoryAccessTracker hTracker;
@@ -76,10 +78,10 @@ void LaunchBegin(
     hTracker.accesses = accesses;
 
     MemoryAccessTracker* dTracker = nullptr;
-    sanitizerAlloc((void**)&dTracker, sizeof(*dTracker));
+    sanitizerAlloc(context, (void**)&dTracker, sizeof(*dTracker));
     sanitizerMemcpyHostToDeviceAsync(dTracker, &hTracker, sizeof(*dTracker), stream);
 
-    sanitizerSetCallbackData(0, dTracker);
+    sanitizerSetCallbackData(function, dTracker);
 
     LaunchData launchData = {functionName, dTracker};
     std::vector<LaunchData>& deviceTrackers = pCallbackTracker->memoryTrackers[stream];
@@ -120,7 +122,8 @@ static std::string GetMemoryTypeString(uint32_t flags)
 
 void StreamSynchronized(
     CallbackTracker* pCallbackTracker,
-    CUstream stream)
+    CUcontext context,
+    Sanitizer_StreamHandle stream)
 {
     MemoryAccessTracker hTracker = {0};
 
@@ -145,25 +148,25 @@ void StreamSynchronized(
 
             std::cout << "  [" << i << "] " << GetMemoryRWString(access.flags)
                       << " access of " << GetMemoryTypeString(access.flags)
-                      << " memory by thread (" << access.threadId.z
+                      << " memory by thread (" << access.threadId.x
                       << "," << access.threadId.y
-                      << "," << access.threadId.x
+                      << "," << access.threadId.z
                       << ") at address 0x" << std::hex << access.address << std::dec
                       << " (size is " << access.accessSize << " bytes)" << std::endl;
         }
 
-        sanitizerFree(hTracker.accesses);
-        sanitizerFree(tracker.pTracker);
+        sanitizerFree(context, hTracker.accesses);
+        sanitizerFree(context, tracker.pTracker);
     }
 
     deviceTrackers.clear();
 }
 
-void ContextSynchronized(CallbackTracker* pCallbackTracker)
+void ContextSynchronized(CallbackTracker* pCallbackTracker, CUcontext context)
 {
     for (auto& streamTracker : pCallbackTracker->memoryTrackers)
     {
-        StreamSynchronized(pCallbackTracker, streamTracker.first);
+        StreamSynchronized(pCallbackTracker, context, streamTracker.first);
     }
 }
 
@@ -196,7 +199,7 @@ void MemoryTrackerCallback(
                 case SANITIZER_CBID_LAUNCH_BEGIN:
                 {
                     auto* pLaunchData = (Sanitizer_LaunchData*)cbdata;
-                    LaunchBegin(callbackTracker, pLaunchData->functionName, pLaunchData->stream);
+                    LaunchBegin(callbackTracker, pLaunchData->context, pLaunchData->function, pLaunchData->functionName, pLaunchData->hStream);
                     break;
                 }
                 default:
@@ -208,13 +211,14 @@ void MemoryTrackerCallback(
             {
                 case SANITIZER_CBID_SYNCHRONIZE_STREAM_SYNCHRONIZED:
                 {
-                    auto* pSyncData = (Sanitizer_LaunchData*)cbdata;
-                    StreamSynchronized(callbackTracker, pSyncData->stream);
+                    auto* pSyncData = (Sanitizer_SynchronizeData*)cbdata;
+                    StreamSynchronized(callbackTracker, pSyncData->context, pSyncData->hStream);
                     break;
                 }
                 case SANITIZER_CBID_SYNCHRONIZE_CONTEXT_SYNCHRONIZED:
                 {
-                    ContextSynchronized(callbackTracker);
+                    auto* pSyncData = (Sanitizer_SynchronizeData*)cbdata;
+                    ContextSynchronized(callbackTracker, pSyncData->context);
                     break;
                 }
                 default:

@@ -29,16 +29,12 @@
 
 # Location of the CUDA Toolkit
 CUDA_PATH      ?= /usr/local/cuda
-SANITIZER_PATH ?= $(CUDA_PATH)/extras/Sanitizer
+SANITIZER_PATH ?= $(CUDA_PATH)/Sanitizer
 
 HOST_COMPILER  ?= g++
 NVCC           := $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
 
 INCLUDE_FLAGS  := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include
-
-# Sanitizer requires CUPTI in CUDA 10.1 in order to include cuda_stdint.h
-CUPTI_PATH     := $(CUDA_PATH)/extras/CUPTI
-INCLUDE_FLAGS  += -I$(CUPTI_PATH)/include
 
 LINK_FLAGS     := -L$(SANITIZER_PATH) -fPIC -shared
 LINK_LIBS      := -lsanitizer-public
@@ -52,7 +48,7 @@ endif
 
 ################################################################################
 
-SMS            ?= 50 60 70 75
+SMS            ?= 50 60 70 75 80
 
 # Generate SASS code for each SM architecture listed in $(SMS)
 $(foreach sm,$(SMS),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
