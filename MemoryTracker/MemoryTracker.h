@@ -31,6 +31,13 @@
 
 #include <vector_types.h>
 
+enum class MemoryAccessType
+{
+    Global,
+    Shared,
+    Local,
+};
+
 // Information regarding a memory access
 struct MemoryAccess
 {
@@ -38,6 +45,7 @@ struct MemoryAccess
     uint32_t accessSize;
     uint32_t flags;
     dim3     threadId;
+    MemoryAccessType type;
 };
 
 // Main tracking structure that patches get as userdata

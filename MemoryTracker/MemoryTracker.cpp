@@ -54,7 +54,9 @@ void ModuleLoaded(Sanitizer_ResourceModuleData* pModuleData)
 {
     // Instrument user code!
     sanitizerAddPatchesFromFile("MemoryTrackerPatches.fatbin", 0);
-    sanitizerPatchInstructions(SANITIZER_INSTRUCTION_MEMORY_ACCESS, pModuleData->module, "MemoryAccessCallback");
+    sanitizerPatchInstructions(SANITIZER_INSTRUCTION_GLOBAL_MEMORY_ACCESS, pModuleData->module, "MemoryGlobalAccessCallback");
+    sanitizerPatchInstructions(SANITIZER_INSTRUCTION_SHARED_MEMORY_ACCESS, pModuleData->module, "MemorySharedAccessCallback");
+    sanitizerPatchInstructions(SANITIZER_INSTRUCTION_LOCAL_MEMORY_ACCESS, pModuleData->module, "MemoryLocalAccessCallback");
     sanitizerPatchModule(pModuleData->module);
 }
 
@@ -104,13 +106,13 @@ static std::string GetMemoryRWString(uint32_t flags)
     }
 }
 
-static std::string GetMemoryTypeString(uint32_t flags)
+static std::string GetMemoryTypeString(MemoryAccessType type)
 {
-    if (flags & SANITIZER_MEMORY_DEVICE_FLAG_LOCAL)
+    if (type == MemoryAccessType::Local)
     {
         return "local";
     }
-    else if (flags & SANITIZER_MEMORY_DEVICE_FLAG_SHARED)
+    else if (type == MemoryAccessType::Shared)
     {
         return  "shared";
     }
@@ -147,7 +149,7 @@ void StreamSynchronized(
             MemoryAccess& access = accesses[i];
 
             std::cout << "  [" << i << "] " << GetMemoryRWString(access.flags)
-                      << " access of " << GetMemoryTypeString(access.flags)
+                      << " access of " << GetMemoryTypeString(access.type)
                       << " memory by thread (" << access.threadId.x
                       << "," << access.threadId.y
                       << "," << access.threadId.z

@@ -29,7 +29,7 @@
 
 # Location of the CUDA Toolkit
 CUDA_PATH      ?= /usr/local/cuda
-SANITIZER_PATH ?= $(CUDA_PATH)/Sanitizer
+SANITIZER_PATH ?= $(CUDA_PATH)/compute-sanitizer
 
 HOST_COMPILER  ?= g++
 NVCC           := $(CUDA_PATH)/bin/nvcc -ccbin $(HOST_COMPILER)
