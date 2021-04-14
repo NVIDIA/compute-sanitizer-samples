@@ -39,7 +39,7 @@ INCLUDE_FLAGS  := -I$(CUDA_PATH)/include -I$(SANITIZER_PATH)/include
 LINK_FLAGS     := -L$(SANITIZER_PATH) -fPIC -shared
 LINK_LIBS      := -lsanitizer-public
 
-NVCC_FLAGS     := --fatbin --keep-device-functions -Xptxas --compile-as-tools-patch
+NVCC_FLAGS     := --fatbin --compile-as-tools-patch
 NVCC_FLAGS     += $(INCLUDE_FLAGS)
 
 ifeq ($(dbg),1)
