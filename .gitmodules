@@ -1,0 +1,4 @@
+[submodule "NVTX"]
+	path = NVTX
+	url = https://github.com/NVIDIA/NVTX
+	branch = dev-mem-api
