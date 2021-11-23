@@ -129,7 +129,11 @@ void LaunchBegin(
 
 static std::string GetMemoryRWString(uint32_t flags)
 {
-    if (flags & SANITIZER_MEMORY_DEVICE_FLAG_READ)
+    if (flags & (SANITIZER_MEMORY_DEVICE_FLAG_READ | SANITIZER_MEMORY_DEVICE_FLAG_WRITE))
+    {
+        return "Atomic";
+    }
+    else if (flags & SANITIZER_MEMORY_DEVICE_FLAG_READ)
     {
         return "Read";
     }
