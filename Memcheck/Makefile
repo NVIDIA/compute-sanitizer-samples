@@ -62,7 +62,7 @@ clobber: clean
 
 # Run sanitizer tools
 run_memcheck: $(TARGET_BINARY)
-	$(SANITIZER_BIN) $(TARGET_BINARY)
+	$(SANITIZER_BIN) --destroy-on-device-error kernel $(TARGET_BINARY)
 
 run_leakcheck: $(TARGET_BINARY)
 	$(SANITIZER_BIN) --leak-check=full $(TARGET_BINARY)
