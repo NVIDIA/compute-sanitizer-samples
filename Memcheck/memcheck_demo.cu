@@ -46,16 +46,16 @@ __global__ void out_of_bounds_kernel(void)
 
 static void run_unaligned(void)
 {
-    std::cout << "Running unaligned_kernel"<< std::endl;
+    std::cout << "Running unaligned_kernel: ";
     unaligned_kernel<<<1,1>>>();
-    cudaDeviceSynchronize();
+    std::cout << cudaGetErrorString(cudaDeviceSynchronize()) << std::endl;
 }
 
 static void run_out_of_bounds(void)
 {
-    std::cout << "Running out_of_bounds_kernel" << std::endl;
+    std::cout << "Running out_of_bounds_kernel: ";
     out_of_bounds_kernel<<<1,1>>>();
-    cudaDeviceSynchronize();
+    std::cout << cudaGetErrorString(cudaDeviceSynchronize()) << std::endl;
 }
 
 int main() {
@@ -67,7 +67,8 @@ int main() {
     run_unaligned();
     run_out_of_bounds();
 
-    cudaFree(devMem);
+    // Omitted to demo leakcheck
+    // cudaFree(devMem);
 
     return 0;
 }
