@@ -88,3 +88,14 @@ SanitizerPatchResult MemoryLocalAccessCallback(
 {
     return CommonCallback(userdata, pc, ptr, accessSize, flags, MemoryAccessType::Local);
 }
+
+extern "C" __device__ __noinline__
+SanitizerPatchResult MemcpyAsyncCallback(void* userdata, uint64_t pc, void* src, uint32_t dst, uint32_t accessSize, uint32_t totalShmemSize)
+{
+    if (src)
+    {
+        CommonCallback(userdata, pc, src, accessSize, SANITIZER_MEMORY_DEVICE_FLAG_READ, MemoryAccessType::Global);
+    }
+
+    return CommonCallback(userdata, pc, (void*)dst, accessSize, SANITIZER_MEMORY_DEVICE_FLAG_WRITE, MemoryAccessType::Shared);
+}
