@@ -81,6 +81,7 @@ void ModuleLoaded(Sanitizer_ResourceModuleData* pModuleData)
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_GLOBAL_MEMORY_ACCESS, pModuleData->module, "MemoryGlobalAccessCallback");
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_SHARED_MEMORY_ACCESS, pModuleData->module, "MemorySharedAccessCallback");
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_LOCAL_MEMORY_ACCESS, pModuleData->module, "MemoryLocalAccessCallback");
+    sanitizerPatchInstructions(SANITIZER_INSTRUCTION_MEMCPY_ASYNC, pModuleData->module, "MemcpyAsyncCallback");
     sanitizerPatchModule(pModuleData->module);
 }
 
