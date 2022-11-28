@@ -77,7 +77,11 @@ struct CallbackTracker
 void ModuleLoaded(Sanitizer_ResourceModuleData* pModuleData)
 {
     // Instrument user code!
-    sanitizerAddPatchesFromFile("MemoryTrackerPatches.fatbin", 0);
+    if (SANITIZER_SUCCESS != sanitizerAddPatchesFromFile("MemoryTrackerPatches.fatbin", 0))
+    {
+        std::cerr << "Failed to load fatbin. Please check it is in the current directory and contains the correct SM architecture" << std::endl;
+    }
+
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_GLOBAL_MEMORY_ACCESS, pModuleData->module, "MemoryGlobalAccessCallback");
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_SHARED_MEMORY_ACCESS, pModuleData->module, "MemorySharedAccessCallback");
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_LOCAL_MEMORY_ACCESS, pModuleData->module, "MemoryLocalAccessCallback");

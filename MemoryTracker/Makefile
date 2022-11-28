@@ -48,7 +48,14 @@ endif
 
 ################################################################################
 
-SMS            ?= 52 60 70 75 80
+# architecture
+TARGET_ARCH   := $(shell uname -m)
+
+ifeq ($(TARGET_ARCH),aarch64)
+    SMS        ?= 53 61 70 72 75 80 86 87 90
+else
+    SMS        ?= 52 60 70 75 80 86 90
+endif
 
 # Generate SASS code for each SM architecture listed in $(SMS)
 $(foreach sm,$(SMS),$(eval GENCODE_FLAGS += -gencode arch=compute_$(sm),code=sm_$(sm)))
