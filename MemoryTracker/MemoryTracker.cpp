@@ -1,4 +1,4 @@
-/* Copyright (c) 2019-2021, NVIDIA CORPORATION. All rights reserved.
+/* Copyright (c) 2019-2023, NVIDIA CORPORATION. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,7 +79,7 @@ void ModuleLoaded(Sanitizer_ResourceModuleData* pModuleData)
     // Instrument user code!
     if (SANITIZER_SUCCESS != sanitizerAddPatchesFromFile("MemoryTrackerPatches.fatbin", 0))
     {
-        std::cerr << "Failed to load fatbin. Please check it is in the current directory and contains the correct SM architecture" << std::endl;
+        std::cerr << "Failed to load fatbin. Please check that it is in the current directory and contains the correct SM architecture" << std::endl;
     }
 
     sanitizerPatchInstructions(SANITIZER_INSTRUCTION_GLOBAL_MEMORY_ACCESS, pModuleData->module, "MemoryGlobalAccessCallback");
