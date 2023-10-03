@@ -47,10 +47,13 @@ void myKernel(int *sum_out)
 
         __syncwarp(mask);
 
-        *sum_out = 0;
-        for (int i = 0; i < (NumThreads / 2); ++i)
+        if (tx == 0)
         {
-            *sum_out += smem[i];
+            *sum_out = 0;
+            for (int i = 0; i < (NumThreads / 2); ++i)
+            {
+                *sum_out += smem[i];
+            }
         }
     }
 
