@@ -49,23 +49,34 @@ endif
 	$(NVCC) $(LINK_FLAGS) -o $@ $<
 
 # Target rules
-TARGET_BINARY   := suppressions_demo
+MEMCHECK_BINARY   := suppressions_demo
+INITCHECK_BINARY  := suppressions_initcheck_demo
+TARGET_BINARIES   := $(MEMCHECK_BINARY) $(INITCHECK_BINARY)
 
 all: build
 
-build: $(TARGET_BINARY)
+build: $(TARGET_BINARIES)
 
 clean:
-	rm -f $(TARGET_BINARY) suppressions_demo.o
+	rm -f $(TARGET_BINARY) suppressions_demo.o suppressions_initcheck_demo.o
 
 clobber: clean
 
 # Run sanitizer tools
-gen_supp: $(TARGET_BINARY)
-	$(SANITIZER_BIN) --save supp.xml --xml $(TARGET_BINARY)
+gen_supp: $(MEMCHECK_BINARY)
+	$(SANITIZER_BIN) --save supp.xml --xml $(MEMCHECK_BINARY)
 
-run:
-	$(SANITIZER_BIN) $(TARGET_BINARY)
+run_memcheck:
+	$(SANITIZER_BIN) $(MEMCHECK_BINARY)
 
-run_with_supp:
-	$(SANITIZER_BIN) --suppressions supp.xml $(TARGET_BINARY)
+run_memcheck_with_supp:
+	$(SANITIZER_BIN) --suppressions supp.xml $(MEMCHECK_BINARY)
+
+initcheck_gen_supp: $(INITCHECK_BINARY)
+	$(SANITIZER_BIN) --tool initcheck --save supp.xml --xml $(INITCHECK_BINARY)
+
+run_initcheck:
+	$(SANITIZER_BIN) --tool initcheck $(INITCHECK_BINARY)
+
+run_initcheck_with_supp:
+	$(SANITIZER_BIN) --tool initcheck --suppressions supp.xml $(INITCHECK_BINARY)
